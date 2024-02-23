@@ -1,0 +1,29 @@
+# Identify the disk and existing partitions
+lsblk
+
+# Start fdisk to partition the disk (replace /dev/sda with your disk)
+sudo fdisk /dev/sda
+# Inside fdisk, follow these steps:
+# n -> Create a new partition
+# p -> Select primary partition type
+# Choose partition number (if prompted)
+# Enter the first sector (accept default if unsure)
+# Enter the last sector or +size (e.g., +20G for 20 GiB)
+# w -> Write changes and exit fdisk
+
+# Initialize the new partition as a physical volume (replace /dev/sda4 with your new partition)
+sudo pvcreate /dev/sda4
+
+# Extend the volume group to include the new physical volume (replace ubuntu-vg with your VG name)
+sudo vgextend ubuntu-vg /dev/sda4
+
+# Extend the logical volume to use all available free space in the volume group
+# Replace /dev/ubuntu-vg/ubuntu-lv with the path to your logical volume
+sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+
+# Resize the filesystem to use the new space on the logical volume
+# Ensure the filesystem type supports online resizing; this example uses ext4
+sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
+
+# Verify the new filesystem size
+df -h
