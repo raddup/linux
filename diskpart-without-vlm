@@ -1,0 +1,49 @@
+ Identify available disks and partitions
+lsblk
+
+# Start interactive partitioning tool (replace /dev/sda with your disk)
+sudo fdisk /dev/sda
+# Inside fdisk:
+# n -> Create new partition
+# Select partition type (e.g., primary: p)
+# Specify partition number, first sector, and size
+# w -> Write changes and exit
+
+# Replace /dev/sdaX with the new partition identifier
+# Format the new partition (e.g., with ext4 filesystem)
+sudo mkfs.ext4 /dev/sdaX
+
+# Create a mount point and mount the new partition
+sudo mkdir /mnt/newpart
+sudo mount /dev/sdaX /mnt/newpart
+
+# Verify the filesystem is mounted
+df -h
+If Resizing a Filesystem Directly Next to Unallocated Space:
+bash
+Copy code
+# Unmount filesystem if it's not in use; skip if it's the root or cannot be unmounted
+sudo umount /dev/sdaY
+
+# Use fdisk or parted to delete and recreate the partition larger without changing the start sector
+sudo fdisk /dev/sda
+# Inside fdisk:
+# d -> Delete partition
+# n -> Create new, larger partition starting at the same sector
+# t -> Set the partition type (if required)
+# w -> Write changes and exit
+
+# Check and resize the filesystem
+# For ext4:
+sudo resize2fs /dev/sdaY
+# For xfs (if mounted):
+sudo xfs_growfs /mount-point
+
+# Remount the filesystem if it was unmounted
+sudo mount /dev/sdaY /mount-point
+Caution:
+
+This guide includes deleting and recreating partitions which is inherently risky and can lead to data loss if not done correctly. It's crucial to have a current backup before attempting these operations.
+The resize2fs command applies to ext4 filesystems. For other filesystem types, the command to resize the filesystem will differ (e.g., xfs_growfs for XFS).
+For the root filesystem or other critical system partitions, these operations should preferably be performed from a live environment to avoid unmounting issues.
+Replace /dev/sda, /dev/sdaX, and /dev/sdaY with your actual disk and partition identifiers, and /mnt/newpart and /mount-point with your intended mount points.
